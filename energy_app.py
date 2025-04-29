@@ -9,14 +9,14 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
     # Parse datetime if not already parsed
-    if not pd.api.types.is_datetime64_any_dtype(df['DateTime']):
-        df['DateTime'] = pd.to_datetime(df['DateTime'])
+    if not pd.api.types.is_datetime64_any_dtype(df['Date/Time CET/CEST']):
+        df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
     # Add derived columns
-    df['Hour'] = df['DateTime'].dt.hour
-    df['Month'] = df['DateTime'].dt.month
-    df['Weekday'] = df['DateTime'].dt.weekday
-    df['Week_Number'] = df['DateTime'].dt.isocalendar().week
+    df['Hour'] = df['Date/Time CET/CESTe'].dt.hour
+    df['Month'] = df['Date/Time CET/CEST'].dt.month
+    df['Weekday'] = df['Date/Time CET/CEST'].dt.weekday
+    df['Week_Number'] = df['Date/Time CET/CEST'].dt.isocalendar().week
 
     # Define seasons
     def get_season(month):
