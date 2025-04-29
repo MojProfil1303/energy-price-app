@@ -1,6 +1,12 @@
 import streamlit as st
 import pandas as pd
 
+from google.colab import files
+uploaded = files.upload()
+file_name = next(iter(uploaded))
+# Load the Excel file
+df = pd.read_excel(file_name)
+
 df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 df['Hour'] = df['Date/Time CET/CEST'].dt.hour
 df['Month'] = df['Date/Time CET/CEST'].dt.month
