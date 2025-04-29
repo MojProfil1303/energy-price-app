@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-# Load and prepare the data 
-df = pd.read_excel('your_uploaded_file.xlsx')
-
 df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 df['Hour'] = df['Date/Time CET/CEST'].dt.hour
 df['Month'] = df['Date/Time CET/CEST'].dt.month
