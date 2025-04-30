@@ -13,11 +13,36 @@ if uploaded_file is not None:
     st.write(df.head())  # Show first few rows to confirm structure
 
     # Add necessary columns for easy filtering
-    df['Hour'] = df['Date/Time CET/CEST'].dt.hour
+    # Extract year, month, day, weekday, hour, week, and day part (day/night)
+    df['Year'] = df['Date/Time CET/CEST'].dt.year
     df['Month'] = df['Date/Time CET/CEST'].dt.month
-    df['Weekday'] = df['Date/Time CET/CEST'].dt.weekday
-    df['Week_Number'] = df['Date/Time CET/CEST'].dt.isocalendar().week
-    df['Season'] = df['Month'].apply(lambda x: 'Winter' if x in [12, 1, 2] else 'Spring' if x in [3, 4, 5] else 'Summer' if x in [6, 7, 8] else 'Autumn')
+    df['Day'] = df['Date/Time CET/CEST'].dt.day
+    df['Weekday'] = df['Date/Time CET/CEST'].dt.weekday  # Monday=0, Sunday=6
+    df['Hour'] = df['Date/Time CET/CEST'].dt.hour
+    df['Week'] = df['Date/Time CET/CEST'].dt.isocalendar().week
+
+    # Create a new column to identify whether the day is a weekday or weekend
+    df['Weekday/Weekend'] = df['Date/Time CET/CEST'].dt.dayofweek
+
+    # 0-4 = Weekdays (Monday to Friday), 5-6 = Weekend (Saturday and Sunday)
+    df['Weekday/Weekend'] = df['Weekday/Weekend'].apply(lambda x: 'Weekday' if x < 5 else 'Weekend')
+
+    # Determine day or night based on the hour
+    df['Day/Night'] = df['Hour'].apply(lambda x: 'Day' if 8 <= x < 20 else 'Night')
+
+    # Function to map months to seasons
+    def get_season(month):
+       if month in [12, 1, 2]:
+          return 'Winter'
+       elif month in [3, 4, 5]:
+          return 'Spring'
+       elif month in [6, 7, 8]:
+          return 'Summer'
+       else:
+          return 'Autumn'
+
+    # Apply the function to your data
+    df['Season'] = df['Month'].apply(get_season)
 
     # Create Streamlit UI
     st.title(" Energy Price Explorer")
