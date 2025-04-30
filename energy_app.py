@@ -53,15 +53,15 @@ if uploaded_file is not None:
     hour_range = st.sidebar.slider("Select Hour Range", 0, 23, (0, 23))
     months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)), default=list(range(1, 13)))
     weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)), default=list(range(0, 7)))
-    weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df['Week_Number'].unique()), default=sorted(df['Week_Number'].unique()))
+    weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df['Week'].unique()), default=sorted(df['Week'].unique()))
     seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'], default=['Winter', 'Spring', 'Summer', 'Autumn'])
 
     # Apply the filters to the dataset
     filtered = df[
         (df['Hour'] >= hour_range[0]) & (df['Hour'] <= hour_range[1]) &
         (df['Month'].isin(months)) &
-        (df['Weekday'].isin(weekdays)) &
-        (df['Week_Number'].isin(weeks)) &
+        (df['Weekday/Weekend'].isin(weekdays)) &
+        (df['Week'].isin(weeks)) &
         (df['Season'].isin(seasons))
     ]
 
