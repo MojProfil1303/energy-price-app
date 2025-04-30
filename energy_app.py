@@ -10,6 +10,8 @@ if uploaded_file is not None:
     # Convert 'Date/Time CET/CEST' column to datetime type
     df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
+    st.write(df.head())  # Show first few rows to confirm structure
+
     # Add necessary columns for easy filtering
     df['Hour'] = df['Date/Time CET/CEST'].dt.hour
     df['Month'] = df['Date/Time CET/CEST'].dt.month
@@ -18,10 +20,10 @@ if uploaded_file is not None:
     df['Season'] = df['Month'].apply(lambda x: 'Winter' if x in [12, 1, 2] else 'Spring' if x in [3, 4, 5] else 'Summer' if x in [6, 7, 8] else 'Autumn')
 
     # Create Streamlit UI
-    st.title("🔌 Interactive Energy Price Explorer")
+    st.title(" Energy Price Explorer")
 
     # Sidebar filters for user input
-    st.sidebar.header("📊 Filter Options")
+    st.sidebar.header("Filter Options")
 
     hour_range = st.sidebar.slider("Select Hour Range", 0, 23, (0, 23))
     months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)), default=list(range(1, 13)))
@@ -39,7 +41,7 @@ if uploaded_file is not None:
     ]
 
     # Display the result
-    st.subheader("📈 Average Energy Price for Selected Filters")
+    st.subheader("Average Energy Price for Selected Filters")
     if filtered.empty:
         st.warning("No data available for selected filters.")
     else:
