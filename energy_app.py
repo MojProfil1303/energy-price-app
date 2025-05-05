@@ -62,7 +62,6 @@ if uploaded_file is not None:
     # Markup Percentage Selector
     markup_percent = st.sidebar.selectbox("Select Markup Percentage", [5, 10, 15, 20], index=3)
 
-
     # Apply filters dynamically (only if the user selected values)
     filtered = df_clean.copy()
     filtered = filtered[(filtered['Hour'] >= hour_range[0]) & (filtered['Hour'] <= hour_range[1])]
@@ -90,12 +89,11 @@ if uploaded_file is not None:
         avg_price = filtered['Energy Price [EUR/MWh]'].mean()
         st.metric(label="Average Price [EUR/MWh]", value=f"{avg_price:.2f}")
 
-        # Select markup percentage
-        markup_percent = st.selectbox("Select Markup Percentage", [5, 10, 15, 20], index=3)
+        # Calculate final price with markup
         final_price = avg_price * (1 + markup_percent / 100)
 
-       # Price with markup
-       st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
+        # Price with markup
+        st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
 
 
