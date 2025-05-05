@@ -3,35 +3,35 @@ import pandas as pd
 
 # Streamlit file upload
 uploaded_file = st.file_uploader("Upload your energy data file", type=['xlsx'])
-
 if uploaded_file is not None:
     # Load the dataset
     df = pd.read_excel(uploaded_file)
 
-    # Ensure correct datetime parsing
+    # ✅ DEBUG: Show raw uploaded data
+    st.subheader("🔍 Raw Uploaded Data Sample")
+    st.dataframe(df.head())
+    st.write("Shape of full dataset:", df.shape)
+
+    # Convert 'Date/Time CET/CEST' column to datetime type
     df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
     # Add time-related columns
     df['Year'] = df['Date/Time CET/CEST'].dt.year
     df['Month'] = df['Date/Time CET/CEST'].dt.month
     df['Day'] = df['Date/Time CET/CEST'].dt.day
-    df['Hour'] = df['Date/Time CET/CEST'].dt.hour
     df['Weekday'] = df['Date/Time CET/CEST'].dt.weekday  # 0=Monday
-    df['Week'] = df['Date/Time CET/CEST'].dt.isocalendar().week.astype(int)
-
-    # Weekday Name
+    df['Hour'] = df['Date/Time CET/CEST'].dt.hour
+    df['Week'] = df['Date/Time CET/CEST'].dt.isocalendar().week
     df['Weekday_Name'] = df['Weekday'].map({
         0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday',
         4: 'Friday', 5: 'Saturday', 6: 'Sunday'
     })
 
-    # Weekday/Weekend
+    # Define Weekday/Weekend and Day/Night
     df['Weekday/Weekend'] = df['Weekday'].apply(lambda x: 'Weekday' if x < 5 else 'Weekend')
-
-    # Day/Night
     df['Day/Night'] = df['Hour'].apply(lambda x: 'Day' if 8 <= x < 20 else 'Night')
 
-    # Seasons
+    # Define season
     def get_season(month):
         if month in [12, 1, 2]:
             return 'Winter'
@@ -44,20 +44,31 @@ if uploaded_file is not None:
 
     df['Season'] = df['Month'].apply(get_season)
 
-    # Exclude 2022 March–Sept (war-related spike)
+    # Exclude war-related high price period
     df_clean = df[~((df['Year'] == 2022) & (df['Month'].between(3, 9)))]
 
-    # Streamlit UI
+    # ✅ DEBUG: Show cleaned data
+    st.subheader("📋 Cleaned Data Sample")
+    st.write("Shape after cleaning:", df_clean.shape)
+    st.dataframe(df_clean.head())
+
+    # UI
     st.title("🔌 Energy Price Explorer")
 
     st.sidebar.header("📊 Filter Options")
-
-    # Use dynamic options from the data
     hour_range = st.sidebar.slider("Select Hour Range", 0, 23, (0, 23))
-    months = st.sidebar.multiselect("Select Month(s)", sorted(df_clean['Month'].unique()), default=sorted(df_clean['Month'].unique()))
-    weekdays = st.sidebar.multiselect("Select Weekday(s)", sorted(df_clean['Weekday'].unique()), default=sorted(df_clean['Weekday'].unique()))
+    months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)), default=list(range(1, 13)))
+    weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)), default=list(range(0, 7)))
     weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()), default=sorted(df_clean['Week'].unique()))
-    seasons = st.sidebar.multiselect("Select Season(s)", sorted(df_clean['Season'].unique()), default=sorted(df_clean['Season'].unique()))
+    seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'], default=['Winter', 'Spring', 'Summer', 'Autumn'])
+
+    # ✅ DEBUG: Show filter values
+    st.sidebar.markdown("### 🧪 Debug - Current Filter Values")
+    st.sidebar.write("Hour Range:", hour_range)
+    st.sidebar.write("Selected Months:", months)
+    st.sidebar.write("Selected Weekdays:", weekdays)
+    st.sidebar.write("Selected Weeks:", weeks)
+    st.sidebar.write("Selected Seasons:", seasons)
 
     # Apply filters
     filtered = df_clean[
@@ -68,23 +79,26 @@ if uploaded_file is not None:
         (df_clean['Season'].isin(seasons))
     ]
 
-    # Debug: Show filtered data size
-    st.write(f"📌 Filtered data contains `{filtered.shape[0]}` rows")
+    # ✅ DEBUG: Show filtered data
+    st.subheader("🔎 Filtered Data Preview")
+    st.write("Filtered Rows:", filtered.shape[0])
+    st.dataframe(filtered.head())
 
     # Result section
     st.subheader("📈 Average Energy Price for Selected Filters")
 
     if filtered.empty:
-        st.warning("⚠️ No data available for selected filters.")
+        st.warning("No data available for selected filters.")
     else:
         # Compute overall average
         avg_price = filtered['Energy Price [EUR/MWh]'].mean()
         st.metric(label="Average Price [EUR/MWh]", value=f"{avg_price:.2f}")
 
-        # Per-year average
+        # Optional: Show per-year average
         yearly_avg = filtered.groupby('Year')['Energy Price [EUR/MWh]'].mean()
-        st.write("📅 Average Price per Year:")
+        st.write("Average Price per Year:")
         st.dataframe(yearly_avg.reset_index().rename(columns={"Energy Price [EUR/MWh]": "Average Price (EUR/MWh)"}))
 
-        # Line chart
+        # Optional: Show line chart
         st.line_chart(filtered.set_index('Date/Time CET/CEST')['Energy Price [EUR/MWh]'])
+
