@@ -10,7 +10,7 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
     # ✅ DEBUG: Show raw uploaded data
-    st.subheader("🔍 Raw Uploaded Data Sample")
+    st.subheader("Uploaded Data Sample")
     st.dataframe(df.head())
     st.write("Shape of full dataset:", df.shape)
 
@@ -49,11 +49,6 @@ if uploaded_file is not None:
     # Exclude war-related high price period
     df_clean = df[~((df['Year'] == 2022) & (df['Month'].between(3, 9)))].copy()
 
-    # ✅ DEBUG: Show cleaned data
-    st.subheader("📋 Cleaned Data Sample")
-    st.write("Shape after cleaning:", df_clean.shape)
-    st.dataframe(df_clean.head())
-
     # UI
     st.title("🔌 Energy Price Explorer")
 
@@ -63,14 +58,6 @@ if uploaded_file is not None:
     weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)))
     weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()))
     seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'])
-
-    # ✅ DEBUG: Show filter values
-    st.sidebar.markdown("### 🧪 Debug - Current Filter Values")
-    st.sidebar.write("Hour Range:", hour_range)
-    st.sidebar.write("Selected Months:", months)
-    st.sidebar.write("Selected Weekdays:", weekdays)
-    st.sidebar.write("Selected Weeks:", weeks)
-    st.sidebar.write("Selected Seasons:", seasons)
 
     # Apply filters dynamically (only if the user selected values)
     filtered = df_clean.copy()
@@ -85,7 +72,7 @@ if uploaded_file is not None:
         filtered = filtered[filtered['Season'].isin(seasons)]
 
     # ✅ DEBUG: Show filtered data
-    st.subheader("🔎 Filtered Data Preview")
+    st.subheader("Filtered Data Preview")
     st.write("Filtered Rows:", filtered.shape[0])
     st.dataframe(filtered.head())
 
@@ -99,11 +86,12 @@ if uploaded_file is not None:
         avg_price = filtered['Energy Price [EUR/MWh]'].mean()
         st.metric(label="Average Price [EUR/MWh]", value=f"{avg_price:.2f}")
 
-        # Optional: Show per-year average
-        yearly_avg = filtered.groupby('Year')['Energy Price [EUR/MWh]'].mean()
-        st.write("Average Price per Year:")
-        st.dataframe(yearly_avg.reset_index().rename(columns={"Energy Price [EUR/MWh]": "Average Price (EUR/MWh)"}))
+        # Select markup percentage
+        markup_percent = st.selectbox("Select Markup Percentage", [5, 10, 15, 20], index=3)
+        final_price = avg_price * (1 + markup_percent / 100)
 
-        # Optional: Show line chart
-        st.line_chart(filtered.set_index('Date/Time CET/CEST')['Energy Price [EUR/MWh]'])
+       # Price with markup
+       st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
+
+
 
