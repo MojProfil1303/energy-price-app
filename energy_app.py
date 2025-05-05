@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 
+st.set_page_config(page_title="Energy Price Explorer", layout="wide")
+
 # Streamlit file upload
 uploaded_file = st.file_uploader("Upload your energy data file", type=['xlsx'])
 if uploaded_file is not None:
@@ -45,7 +47,7 @@ if uploaded_file is not None:
     df['Season'] = df['Month'].apply(get_season)
 
     # Exclude war-related high price period
-    df_clean = df[~((df['Year'] == 2022) & (df['Month'].between(3, 9)))]
+    df_clean = df[~((df['Year'] == 2022) & (df['Month'].between(3, 9)))].copy()
 
     # ✅ DEBUG: Show cleaned data
     st.subheader("📋 Cleaned Data Sample")
@@ -57,10 +59,10 @@ if uploaded_file is not None:
 
     st.sidebar.header("📊 Filter Options")
     hour_range = st.sidebar.slider("Select Hour Range", 0, 23, (0, 23))
-    months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)), default=list(range(1, 13)))
-    weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)), default=list(range(0, 7)))
-    weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()), default=sorted(df_clean['Week'].unique()))
-    seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'], default=['Winter', 'Spring', 'Summer', 'Autumn'])
+    months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)))
+    weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)))
+    weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()))
+    seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'])
 
     # ✅ DEBUG: Show filter values
     st.sidebar.markdown("### 🧪 Debug - Current Filter Values")
@@ -70,14 +72,17 @@ if uploaded_file is not None:
     st.sidebar.write("Selected Weeks:", weeks)
     st.sidebar.write("Selected Seasons:", seasons)
 
-    # Apply filters
-    filtered = df_clean[
-        (df_clean['Hour'] >= hour_range[0]) & (df_clean['Hour'] <= hour_range[1]) &
-        (df_clean['Month'].isin(months)) &
-        (df_clean['Weekday'].isin(weekdays)) &
-        (df_clean['Week'].isin(weeks)) &
-        (df_clean['Season'].isin(seasons))
-    ]
+    # Apply filters dynamically (only if the user selected values)
+    filtered = df_clean.copy()
+    filtered = filtered[(filtered['Hour'] >= hour_range[0]) & (filtered['Hour'] <= hour_range[1])]
+    if months:
+        filtered = filtered[filtered['Month'].isin(months)]
+    if weekdays:
+        filtered = filtered[filtered['Weekday'].isin(weekdays)]
+    if weeks:
+        filtered = filtered[filtered['Week'].isin(weeks)]
+    if seasons:
+        filtered = filtered[filtered['Season'].isin(seasons)]
 
     # ✅ DEBUG: Show filtered data
     st.subheader("🔎 Filtered Data Preview")
