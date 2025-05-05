@@ -74,11 +74,6 @@ if uploaded_file is not None:
     if seasons:
         filtered = filtered[filtered['Season'].isin(seasons)]
 
-    # ✅ DEBUG: Show filtered data
-    st.subheader("Filtered Data Preview")
-    st.write("Filtered Rows:", filtered.shape[0])
-    st.dataframe(filtered.head())
-
     # Result section
     st.subheader("📈 Average Energy Price for Selected Filters")
 
