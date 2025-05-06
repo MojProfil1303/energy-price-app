@@ -44,10 +44,10 @@ if uploaded_file is not None:
 
     # Display row 288
     st.write("Row 288 with problematic date entry:")
-    st.write(df.iloc[287])  # Row 288 corresponds to index 287
+    st.write(df.iloc[288])  # Row 288 corresponds to index 287
 
     # Check for non-date entries or special characters
-    invalid_row = df.iloc[287]
+    invalid_row = df.iloc[288]
     st.write("Checking for invalid characters in the date column:")
     st.write(invalid_row['Date/Time CET/CEST'])
 
