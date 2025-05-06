@@ -14,6 +14,21 @@ if uploaded_file is not None:
     st.dataframe(df.head())
     st.write("Shape of full dataset:", df.shape)
 
+     ✅ Automatically detect and parse datetime column
+    datetime_col = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower()]
+    if datetime_col:
+        df[datetime_col[0]] = pd.to_datetime(df[datetime_col[0]], errors='coerce')
+        df = df.rename(columns={datetime_col[0]: 'Date/Time CET/CEST'})
+    else:
+        st.error("⚠️ No datetime column found. Please ensure your file has a date/time column.")
+        st.stop()
+
+    # ✅ Check if Energy Price column exists
+    price_col = [col for col in df.columns if 'price' in col.lower()]
+    if not price_col:
+        st.error("⚠️ No energy price column found. Please ensure your file includes a column with energy prices.")
+        st.stop()
+        
     # Convert 'Date/Time CET/CEST' column to datetime type
     df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
