@@ -64,7 +64,7 @@ if uploaded_file is not None:
     df_clean = df[~((df['Year'] == 2022) & (df['Month'].between(3, 9)))].copy()
 
     # UI
-    st.title("🔌 Energy Price Explorer")
+    st.title("Energy Price Explorer")
 
     st.sidebar.header("📊 Filter Options")
     hour_range = st.sidebar.slider("Select Hour Range", 0, 23, (0, 23))
