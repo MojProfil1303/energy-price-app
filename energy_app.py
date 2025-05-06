@@ -14,7 +14,6 @@ if uploaded_file is not None:
     st.dataframe(df.head())
     st.write("Shape of full dataset:", df.shape)
 
-     ✅ Automatically detect and parse datetime column
     datetime_col = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower()]
     if datetime_col:
         df[datetime_col[0]] = pd.to_datetime(df[datetime_col[0]], errors='coerce')
