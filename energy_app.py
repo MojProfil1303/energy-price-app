@@ -28,12 +28,81 @@ if uploaded_file is not None:
         st.error("⚠️ No energy price column found. Please ensure your file includes a column with energy prices.")
         st.stop()
 
+    # Strip whitespace in string columns
+    df = df.applymap(lambda x: x.strip() if isinstance(x, str) else x)
+
+    # Check for missing values in all columns
+    missing_values = df.isnull().sum()
+
+    # Display missing values summary
+    st.write("Missing Values Summary:", missing_values)
+
+    # Identify which columns have missing values
+    missing_columns = missing_values[missing_values > 0].index.tolist()
+    if missing_columns:
+        st.write(f"The following columns have missing values: {', '.join(missing_columns)}")
+
+    # Check the rows with missing values
+    rows_with_missing_values = df[df.isnull().any(axis=1)]
+    st.write("Rows with Missing Values:", rows_with_missing_values)
+
+    # Further investigate the 'Date/Time CET/CEST' column for missing values
+    if 'Date/Time CET/CEST' in df.columns:
+        st.write(f"Missing values in 'Date/Time CET/CEST' column: {df['Date/Time CET/CEST'].isnull().sum()}")
+        st.write("Unique values in 'Date/Time CET/CEST' column (before conversion to datetime):")
+        st.write(df['Date/Time CET/CEST'].unique())
+
+        # Try to convert 'Date/Time CET/CEST' to datetime and identify invalid entries
+        df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'], errors='coerce')
+        st.write("After conversion, the invalid date entries are:")
+        invalid_dates = df[df['Date/Time CET/CEST'].isnull()]
+        st.write(invalid_dates)
+
+    # Check for other potential reasons for missing data
+    st.write("Checking for rows where columns may have completely empty values (non-date columns)")
+    empty_columns = df.columns[df.isnull().all()]
+    if empty_columns.any():
+        st.write(f"These columns are completely empty: {', '.join(empty_columns)}")
+    else:
+        st.write("No columns are completely empty.")
+
+    # Check for duplicate rows that might have missing values as a result of merging or concatenating datasets
+    st.write("Checking for duplicate rows:")
+    duplicates = df[df.duplicated()]
+    if not duplicates.empty:
+        st.write("Found duplicate rows, which may cause missing values in some columns:")
+        st.write(duplicates)
+    else:
+        st.write("No duplicate rows found.")
+
+    # Provide information on the dataset after checking for missing values
+    st.write("Shape of the dataset:", df.shape)
+    
     # Check for missing values in the entire DataFrame
     missing_values = df.isnull().sum()
 
     # Display the missing values summary
     st.subheader("Missing Values Summary")
     st.write(missing_values)
+
+    # Provide summary after cleaning
+    st.write("Shape of cleaned dataset:", df_cleaned.shape)
+
+    # Additional exploration
+    st.write("Checking for specific columns' data types:")
+    st.write(df.dtypes)
+
+    st.write("Check for any values that are 'NaN' or 'None' in string columns:")
+    string_columns = df.select_dtypes(include=['object']).columns
+    for col in string_columns:
+        if df[col].str.contains('nan', case=False).any():
+            st.write(f"Column '{col}' has 'nan' values as strings!")
+
+    # Check and show any rows that have special characters or unexpected formats
+    special_characters = df[~df.applymap(lambda x: isinstance(x, str) or x.isalnum()).all(axis=1)]
+    if not special_characters.empty:
+        st.write("Rows with special characters or unexpected formats:")
+        st.write(special_characters)
     
     # Convert 'Date/Time CET/CEST' column to datetime type
     df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
