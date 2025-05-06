@@ -42,6 +42,22 @@ if uploaded_file is not None:
     if missing_columns:
         st.write(f"The following columns have missing values: {', '.join(missing_columns)}")
 
+    # Display row 288
+    st.write("Row 288 with problematic date entry:")
+    st.write(df.iloc[287])  # Row 288 corresponds to index 287
+
+    # Check for non-date entries or special characters
+    invalid_row = df.iloc[287]
+    st.write("Checking for invalid characters in the date column:")
+    st.write(invalid_row['Date/Time CET/CEST'])
+
+    # Try to explicitly convert the date and catch errors
+    try:
+        test_date = pd.to_datetime(invalid_row['Date/Time CET/CEST'], errors='raise')
+        st.write(f"Valid date: {test_date}")
+    except Exception as e:
+        st.write(f"Error in converting date: {e}")
+    
     # Check the rows with missing values
     rows_with_missing_values = df[df.isnull().any(axis=1)]
     st.write("Rows with Missing Values:", rows_with_missing_values)
