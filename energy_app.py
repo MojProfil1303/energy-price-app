@@ -16,7 +16,7 @@ if uploaded_file is not None:
 
     datetime_col = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower()]
     if datetime_col:
-        df[datetime_col[0]] = pd.to_datetime(df[datetime_col[0]], errors='coerce')
+        df[datetime_col[0]] = pd.to_datetime(df[datetime_col[0]], format='%d.%m.%Y/%H:%M', errors='coerce')
         df = df.rename(columns={datetime_col[0]: 'Date/Time CET/CEST'})
     else:
         st.error("⚠️ No datetime column found. Please ensure your file has a date/time column.")
