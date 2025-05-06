@@ -27,7 +27,14 @@ if uploaded_file is not None:
     if not price_col:
         st.error("⚠️ No energy price column found. Please ensure your file includes a column with energy prices.")
         st.stop()
-        
+
+    # Check for missing values in the entire DataFrame
+    missing_values = df.isnull().sum()
+
+    # Display the missing values summary
+    st.subheader("Missing Values Summary")
+    st.write(missing_values)
+    
     # Convert 'Date/Time CET/CEST' column to datetime type
     df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
