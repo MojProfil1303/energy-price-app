@@ -65,7 +65,7 @@ if uploaded_file is not None:
     st.sidebar.header("Filter Options")
     selected_hours = st.sidebar.multiselect("Select Hour(s)", list(range(24)))
     months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)))
-    weekdays = st.sidebar.multiselect("Select Weekday(s)", ['Monday', 'Wednesday', 'Friday'])
+    weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)))
     weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()))
     seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'])
 
@@ -74,26 +74,16 @@ if uploaded_file is not None:
 
     # Apply filters dynamically (only if the user selected values)
     filtered = df_clean.copy()
-    
-    # Weekday filter
-    if weekdays:
-        filtered = filtered[filtered['Weekday_Name'].isin(weekdays)]
-    
-    # Week filter
-    if weeks:
-        filtered = filtered[filtered['Week'].isin(weeks)]
-        
-    # Season filter
-    if seasons:
-        filtered = filtered[filtered['Season'].isin(seasons)]
-
-    # Hour filter
     if selected_hours:
         filtered = filtered[filtered['Hour'].isin(selected_hours)]
-        
-    # Month filter
     if months:
         filtered = filtered[filtered['Month'].isin(months)]
+    if weekdays:
+        filtered = filtered[filtered['Weekday'].isin(weekdays)]
+    if weeks:
+        filtered = filtered[filtered['Week'].isin(weeks)]
+    if seasons:
+        filtered = filtered[filtered['Season'].isin(seasons)]
 
     # Result section
     st.subheader("Average Energy Price for Selected Filters")
@@ -107,51 +97,21 @@ if uploaded_file is not None:
         final_price = avg_price * (1 + markup_percent / 100)
         st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
-        # Bar Chart for all 24 hours, with highlighted selected hours
-        st.subheader("Bar Chart per Hour (with Selected Hours Highlighted)")
+        # Bar Chart for all 24 hours, with highlighted selected hours in orange
+        st.subheader("Bar Chart per Hour (with Selected Hours Highlighted in Orange)")
 
         # Group the data by hour and calculate the average price
-        hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-
-        # Highlight the selected hours by marking them differently
-        highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)] if selected_hours else pd.DataFrame()
+        hourly_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
 
         # Plot all 24 hours
         st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        # If hours are selected, add a highlighted layer for them
-        if not highlighted.empty:
-            st.markdown("### Highlighted Hours")
-            st.bar_chart(highlighted.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
-
-        # Bar Chart for selected Weekdays (e.g., Monday, Wednesday, Friday)
-        if weekdays:
-            st.subheader("Bar Chart per Selected Weekday(s)")
-            filtered_weekdays = filtered[filtered['Weekday_Name'].isin(weekdays)]
-            weekday_avg = filtered_weekdays.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
-
-        # Bar Chart for selected Weeks
-        if weeks:
-            st.subheader("Bar Chart per Selected Week(s)")
-            filtered_weeks = filtered[filtered['Week'].isin(weeks)]
-            week_avg = filtered_weeks.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(week_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
-
-        # Bar Chart for selected Months
-        if months:
-            st.subheader("Bar Chart per Selected Month(s)")
-            filtered_months = filtered[filtered['Month'].isin(months)]
-            month_avg = filtered_months.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(month_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
-
-        # Bar Chart for selected Seasons
-        if seasons:
-            st.subheader("Bar Chart per Selected Season(s)")
-            filtered_seasons = filtered[filtered['Season'].isin(seasons)]
-            season_avg = filtered_seasons.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(season_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
-
+        # Highlight the selected hours in orange by setting their value to a specific color
+        if selected_hours:
+            hourly_avg['Highlight'] = hourly_avg['Hour'].apply(lambda x: 'orange' if x in selected_hours else 'blue')
+            st.markdown("### Highlighted Hours in Orange")
+            st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+            
     # Show charts for the full dataset if no filters are applied
     if not selected_hours and not months and not weekdays and not weeks and not seasons:
         st.subheader("Bar Charts for the Full Dataset")
