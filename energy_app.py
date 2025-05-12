@@ -131,7 +131,7 @@ if uploaded_file is not None:
             st.bar_chart(season_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Season'))
 
     # Show charts for the full dataset if no filters are applied
-    if (hour_range == (0, 23)) and not months and not weekdays and not weeks and not seasons:
+    if (not selected_hours) and not months and not weekdays and not weeks and not seasons:
         st.subheader("Bar Charts for the Full Dataset")
 
         full_hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
