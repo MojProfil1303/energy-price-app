@@ -10,9 +10,9 @@ if uploaded_file is not None:
     df = pd.read_excel(uploaded_file)
 
     # ✅ DEBUG: Show raw uploaded data
-    st.subheader("Uploaded Data Sample")
-    st.dataframe(df.head())
-    st.write("Shape of full dataset:", df.shape)
+    #st.subheader("Uploaded Data Sample")
+    #st.dataframe(df.head())
+    #st.write("Shape of full dataset:", df.shape)
 
     # Identify datetime column
     datetime_col = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower()]
@@ -68,7 +68,7 @@ if uploaded_file is not None:
     st.title("Energy Price Explorer")
 
     st.sidebar.header("\U0001F4CA Filter Options")
-    hour_range = st.sidebar.slider("Select Hour Range", 0, 23, (0, 23))
+    selected_hours = st.sidebar.multiselect("Select Hour(s)", list(range(24)))
     months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)))
     weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)))
     weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()))
@@ -79,7 +79,8 @@ if uploaded_file is not None:
 
     # Apply filters dynamically (only if the user selected values)
     filtered = df_clean.copy()
-    filtered = filtered[(filtered['Hour'] >= hour_range[0]) & (filtered['Hour'] <= hour_range[1])]
+    if selected_hours:
+        filtered = filtered[filtered['Hour'].isin(selected_hours)]
     if months:
         filtered = filtered[filtered['Month'].isin(months)]
     if weekdays:
