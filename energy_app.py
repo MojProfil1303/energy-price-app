@@ -100,7 +100,7 @@ if uploaded_file is not None:
     st.bar_chart(hourly_avg_filtered.set_index('Hour'))
 
      # Bar Chart for selected Weekdays
-     if weekdays:
+         if weekdays:
          st.subheader("Bar Chart per Selected Weekday(s)")
          filtered_weekdays = filtered[filtered['Weekday'].isin(weekdays)]
          weekday_avg = filtered_weekdays.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
