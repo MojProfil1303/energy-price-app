@@ -94,43 +94,38 @@ if uploaded_file is not None:
         final_price = avg_price * (1 + markup_percent / 100)
         st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
-        # Bar Chart: Average price per hour based on filters (always show 0–23)
-        st.subheader("Average Energy Price by Hour (Filtered Data)")
-        hourly_avg_filtered = (
-            filtered.groupby('Hour')['Energy Price [EUR/MWh]']
-            .mean()
-            .reindex(range(24), fill_value=float('nan'))
-            .reset_index()
-        )
-        st.bar_chart(hourly_avg_filtered.set_index('Hour'))
+    # Bar Chart: Average price per hour based on filters (always show 0–23)
+    st.subheader("Average Energy Price by Hour (Filtered Data)")
+    hourly_avg_filtered = (filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reindex(range(24), fill_value=float('nan')).reset_index())
+    st.bar_chart(hourly_avg_filtered.set_index('Hour'))
 
-        # Bar Chart for selected Weekdays
-        if weekdays:
-            st.subheader("Bar Chart per Selected Weekday(s)")
-            filtered_weekdays = filtered[filtered['Weekday'].isin(weekdays)]
-            weekday_avg = filtered_weekdays.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(weekday_avg.set_index('Hour'))
+    # Bar Chart for selected Weekdays
+    if weekdays:
+        st.subheader("Bar Chart per Selected Weekday(s)")
+        filtered_weekdays = filtered[filtered['Weekday'].isin(weekdays)]
+        weekday_avg = filtered_weekdays.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+        st.bar_chart(weekday_avg.set_index('Hour'))
 
-        # Bar Chart for selected Weeks
-        if weeks:
-            st.subheader("Bar Chart per Selected Week(s)")
-            filtered_weeks = filtered[filtered['Week'].isin(weeks)]
-            week_avg = filtered_weeks.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(week_avg.set_index('Hour'))
+    # Bar Chart for selected Weeks
+    if weeks:
+        st.subheader("Bar Chart per Selected Week(s)")
+        filtered_weeks = filtered[filtered['Week'].isin(weeks)]
+        week_avg = filtered_weeks.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+        st.bar_chart(week_avg.set_index('Hour'))
 
-        # Bar Chart for selected Months
-        if months:
-            st.subheader("Bar Chart per Selected Month(s)")
-            filtered_months = filtered[filtered['Month'].isin(months)]
-            month_avg = filtered_months.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(month_avg.set_index('Hour'))
+    # Bar Chart for selected Months
+    if months:
+        st.subheader("Bar Chart per Selected Month(s)")
+        filtered_months = filtered[filtered['Month'].isin(months)]
+        month_avg = filtered_months.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+        st.bar_chart(month_avg.set_index('Hour'))
 
-        # Bar Chart for selected Seasons
-        if seasons:
-            st.subheader("Bar Chart per Selected Season(s)")
-            filtered_seasons = filtered[filtered['Season'].isin(seasons)]
-            season_avg = filtered_seasons.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(season_avg.set_index('Hour'))
+    # Bar Chart for selected Seasons
+    if seasons:
+        st.subheader("Bar Chart per Selected Season(s)")
+        filtered_seasons = filtered[filtered['Season'].isin(seasons)]
+        season_avg = filtered_seasons.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+        st.bar_chart(season_avg.set_index('Hour'))
 
     # Show full dataset charts if no filters applied
     if not any([selected_hours, months, weekdays, weeks, seasons]):
@@ -158,3 +153,4 @@ if uploaded_file is not None:
         full_season_avg = full_season_avg.sort_values('Energy Price [EUR/MWh]')
         st.write("**Average Price by Season**")
         st.bar_chart(full_season_avg.set_index('Season'))
+
