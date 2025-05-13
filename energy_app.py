@@ -92,7 +92,7 @@ if uploaded_file is not None:
         st.metric(label="Average Price [EUR/MWh]", value=f"{avg_price:.2f}")
 
         final_price = avg_price * (1 + markup_percent / 100)
-        st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh"
+        st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
     # Bar Chart: Average price per hour based on filters (always show 0–23)
     st.subheader("Average Energy Price by Hour (Filtered Data)")
