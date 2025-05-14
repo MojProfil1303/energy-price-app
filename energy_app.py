@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px  # Added for grouped bar chart
+import plotly.express as px  # For grouped bar charts
 
 st.set_page_config(page_title="Energy Price Explorer", layout="wide")
 
@@ -25,10 +25,9 @@ if uploaded_file is not None:
         st.error("⚠️ No energy price column found. Please ensure your file includes a column with energy prices.")
         st.stop()
 
-    # Convert 'Date/Time CET/CEST' column to datetime type
     df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
-    # Add time-related columns
+    # Time features
     df['Year'] = df['Date/Time CET/CEST'].dt.year
     df['Month'] = df['Date/Time CET/CEST'].dt.month
     df['Day'] = df['Date/Time CET/CEST'].dt.day
@@ -70,10 +69,9 @@ if uploaded_file is not None:
     weeks = st.sidebar.multiselect("Select Week Number(s)", sorted(df_clean['Week'].unique()))
     seasons = st.sidebar.multiselect("Select Season(s)", ['Winter', 'Spring', 'Summer', 'Autumn'])
 
-    # Markup Percentage Selector
     markup_percent = st.sidebar.selectbox("Select Markup Percentage", [5, 10, 15, 20], index=3)
 
-    # Apply filters dynamically (only if the user selected values)
+    # Apply filters dynamically
     filtered = df_clean.copy()
     if selected_hours:
         filtered = filtered[filtered['Hour'].isin(selected_hours)]
@@ -98,63 +96,72 @@ if uploaded_file is not None:
         final_price = avg_price * (1 + markup_percent / 100)
         st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
-        # Bar Chart for all 24 hours, with highlighted selected hours
+        # Bar chart of 24 hours (highlighted)
         st.subheader("Bar Chart per Hour (with Selected Hours Highlighted)")
-
         hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
         highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)] if selected_hours else pd.DataFrame()
-
         st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
         if not highlighted.empty:
             st.markdown("### Highlighted Hours")
             st.bar_chart(highlighted.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        # ✅ NEW: Grouped Bar Chart by Hour and Weekday
-        if selected_hours and weekdays:
-            st.subheader("Grouped Bar Chart: Hourly Averages by Selected Weekdays")
+        # Bar Charts for selected dimensions
+        if weekdays:
+            st.subheader("Bar Chart per Selected Weekday(s)")
+            weekday_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            st.bar_chart(weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-            filtered_subset = filtered[filtered['Hour'].isin(selected_hours) & filtered['Weekday'].isin(weekdays)]
-
-            grouped_avg = (
-                filtered_subset.groupby(['Weekday_Name', 'Hour'])['Energy Price [EUR/MWh]']
-                .mean()
-                .reset_index()
-                .rename(columns={'Energy Price [EUR/MWh]': 'Average Price'})
-            )
-
-            fig = px.bar(
-                grouped_avg,
-                x='Hour',
-                y='Average Price',
-                color='Weekday_Name',
-                barmode='group',
-                title='Average Energy Price by Hour and Weekday'
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-        # Bar Chart for selected Weeks
         if weeks:
             st.subheader("Bar Chart per Selected Week(s)")
-            filtered_weeks = filtered[filtered['Week'].isin(weeks)]
-            week_avg = filtered_weeks.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            week_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
             st.bar_chart(week_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        # Bar Chart for selected Months
         if months:
             st.subheader("Bar Chart per Selected Month(s)")
-            filtered_months = filtered[filtered['Month'].isin(months)]
-            month_avg = filtered_months.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            month_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
             st.bar_chart(month_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        # Bar Chart for selected Seasons
         if seasons:
             st.subheader("Bar Chart per Selected Season(s)")
-            filtered_seasons = filtered[filtered['Season'].isin(seasons)]
-            season_avg = filtered_seasons.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            season_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
             st.bar_chart(season_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-    # Show charts for the full dataset if no filters are applied
+        # ✅ Grouped Bar Chart for Hours × Weekdays × Months
+        if selected_hours and weekdays and months:
+            st.subheader("Grouped Bar Chart: Average Price by Hour and Weekday for Selected Month(s)")
+
+            detailed_filtered = filtered[
+                (filtered['Hour'].isin(selected_hours)) &
+                (filtered['Weekday'].isin(weekdays)) &
+                (filtered['Month'].isin(months))
+            ].copy()
+
+            if not detailed_filtered.empty:
+                month_names = {
+                    1: "January", 2: "February", 3: "March", 4: "April",
+                    5: "May", 6: "June", 7: "July", 8: "August",
+                    9: "September", 10: "October", 11: "November", 12: "December"
+                }
+                detailed_filtered['Month_Name'] = detailed_filtered['Month'].map(month_names)
+
+                group_avg = detailed_filtered.groupby(['Month_Name', 'Weekday_Name', 'Hour'])['Energy Price [EUR/MWh]'].mean().reset_index()
+
+                fig = px.bar(
+                    group_avg,
+                    x="Weekday_Name",
+                    y="Energy Price [EUR/MWh]",
+                    color="Hour",
+                    barmode="group",
+                    facet_col="Month_Name",
+                    category_orders={"Weekday_Name": ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']},
+                    title="Grouped Average Energy Price by Weekday, Hour, and Month"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("No data for selected combination of hours, weekdays, and months.")
+
+    # Fallback full charts
     if not selected_hours and not months and not weekdays and not weeks and not seasons:
         st.subheader("Bar Charts for the Full Dataset")
 
@@ -172,11 +179,9 @@ if uploaded_file is not None:
         st.bar_chart(full_weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Weekday_Name'))
 
         full_week_avg = df_clean.groupby('Week')['Energy Price [EUR/MWh]'].mean().reset_index()
-        full_week_avg = full_week_avg.sort_values('Energy Price [EUR/MWh]')
         st.write("**Average Price by Week Number**")
         st.bar_chart(full_week_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Week'))
 
         full_season_avg = df_clean.groupby('Season')['Energy Price [EUR/MWh]'].mean().reset_index()
-        full_season_avg = full_season_avg.sort_values('Energy Price [EUR/MWh]')
         st.write("**Average Price by Season**")
         st.bar_chart(full_season_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Season'))
