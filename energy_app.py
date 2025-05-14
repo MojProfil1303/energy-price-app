@@ -94,9 +94,9 @@ if uploaded_file is not None:
         st.metric(f"Price with {markup_percent}% Markup", f"{final_price:.2f} EUR/MWh")
 
         # Hourly average chart
-        st.subheader("Bar Chart per Hour")
+        #st.subheader("Bar Chart per Hour")
         hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-        st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+        #st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
         # Grouped charts
         if selected_hours and weekdays and months:
