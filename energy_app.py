@@ -12,14 +12,11 @@ if uploaded_file is not None:
     # Identify datetime column
     datetime_col = [col for col in df.columns if 'date' in col.lower() or 'time' in col.lower()]
     if datetime_col:
-        df[datetime_col[0]] = pd.to_datetime(df[datetime_col[0]], errors='coerce')  # more robust
+        df[datetime_col[0]] = pd.to_datetime(df[datetime_col[0]], format='%d.%m.%Y/%H:%M', errors='coerce')
         df = df.rename(columns={datetime_col[0]: 'Date/Time CET/CEST'})
     else:
         st.error("⚠️ No datetime column found. Please ensure your file has a date/time column.")
         st.stop()
-
-    # Debug: Check datetime parsing
-    st.write("Missing datetime values:", df['Date/Time CET/CEST'].isna().sum())
 
     # Check if Energy Price column exists
     price_col = [col for col in df.columns if 'price' in col.lower()]
@@ -27,7 +24,8 @@ if uploaded_file is not None:
         st.error("⚠️ No energy price column found. Please ensure your file includes a column with energy prices.")
         st.stop()
 
-    price_col = price_col[0]  # use dynamically
+    # Convert 'Date/Time CET/CEST' column to datetime type
+    df['Date/Time CET/CEST'] = pd.to_datetime(df['Date/Time CET/CEST'])
 
     # Add time-related columns
     df['Year'] = df['Date/Time CET/CEST'].dt.year
@@ -87,81 +85,86 @@ if uploaded_file is not None:
     if seasons:
         filtered = filtered[filtered['Season'].isin(seasons)]
 
-    # Debug: Show filter states and data shape
-    st.write("📊 DEBUG INFO")
-    st.write("Selected Hours:", selected_hours)
-    st.write("Selected Months:", months)
-    st.write("Selected Weekdays:", weekdays)
-    st.write("Selected Weeks:", weeks)
-    st.write("Selected Seasons:", seasons)
-    st.write("Filtered Data Size:", filtered.shape)
-    st.dataframe(filtered.head())  # show first few rows
-
     # Result section
     st.subheader("Average Energy Price for Selected Filters")
 
     if filtered.empty:
-        st.warning("⚠️ No data available for selected filters.")
+        st.warning("No data available for selected filters.")
     else:
-        avg_price = filtered[price_col].mean()
+        avg_price = filtered['Energy Price [EUR/MWh]'].mean()
         st.metric(label="Average Price [EUR/MWh]", value=f"{avg_price:.2f}")
 
         final_price = avg_price * (1 + markup_percent / 100)
         st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
-        # Bar Chart for all 24 hours
+        # Bar Chart for all 24 hours, with highlighted selected hours
         st.subheader("Bar Chart per Hour (with Selected Hours Highlighted)")
-        hourly_avg = df_clean.groupby('Hour')[price_col].mean().reset_index()
-        highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)] if selected_hours else pd.DataFrame()
-        st.bar_chart(hourly_avg.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
 
+        # Group the data by hour and calculate the average price
+        hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+
+        # Highlight the selected hours by marking them differently
+        highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)] if selected_hours else pd.DataFrame()
+
+        # Plot all 24 hours
+        st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+
+        # If hours are selected, add a highlighted layer for them
         if not highlighted.empty:
             st.markdown("### Highlighted Hours")
-            st.bar_chart(highlighted.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
+            st.bar_chart(highlighted.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
+        # Bar Chart for selected Weekdays (e.g., Monday, Tuesday)
         if weekdays:
             st.subheader("Bar Chart per Selected Weekday(s)")
-            weekday_avg = filtered.groupby('Hour')[price_col].mean().reset_index()
-            st.bar_chart(weekday_avg.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
+            filtered_weekdays = filtered[filtered['Weekday'].isin(weekdays)]
+            weekday_avg = filtered_weekdays.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            st.bar_chart(weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
+        # Bar Chart for selected Weeks
         if weeks:
             st.subheader("Bar Chart per Selected Week(s)")
-            week_avg = filtered.groupby('Hour')[price_col].mean().reset_index()
-            st.bar_chart(week_avg.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
+            filtered_weeks = filtered[filtered['Week'].isin(weeks)]
+            week_avg = filtered_weeks.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            st.bar_chart(week_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
+        # Bar Chart for selected Months
         if months:
             st.subheader("Bar Chart per Selected Month(s)")
-            month_avg = filtered.groupby('Hour')[price_col].mean().reset_index()
-            st.bar_chart(month_avg.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
+            filtered_months = filtered[filtered['Month'].isin(months)]
+            month_avg = filtered_months.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            st.bar_chart(month_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
+        # Bar Chart for selected Seasons
         if seasons:
             st.subheader("Bar Chart per Selected Season(s)")
-            season_avg = filtered.groupby('Hour')[price_col].mean().reset_index()
-            st.bar_chart(season_avg.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
+            filtered_seasons = filtered[filtered['Season'].isin(seasons)]
+            season_avg = filtered_seasons.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            st.bar_chart(season_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
     # Show charts for the full dataset if no filters are applied
     if not selected_hours and not months and not weekdays and not weeks and not seasons:
         st.subheader("Bar Charts for the Full Dataset")
 
-        full_hourly_avg = df_clean.groupby('Hour')[price_col].mean().reset_index()
+        full_hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
         st.write("**Average Price by Hour**")
-        st.bar_chart(full_hourly_avg.rename(columns={price_col: 'Average Price'}).set_index('Hour'))
+        st.bar_chart(full_hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        full_month_avg = df_clean.groupby('Month')[price_col].mean().reset_index()
+        full_month_avg = df_clean.groupby('Month')['Energy Price [EUR/MWh]'].mean().reset_index()
         st.write("**Average Price by Month**")
-        st.bar_chart(full_month_avg.rename(columns={price_col: 'Average Price'}).set_index('Month'))
+        st.bar_chart(full_month_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Month'))
 
-        full_weekday_avg = df_clean.groupby('Weekday_Name')[price_col].mean().reset_index()
-        full_weekday_avg = full_weekday_avg.sort_values(price_col)
+        full_weekday_avg = df_clean.groupby('Weekday_Name')['Energy Price [EUR/MWh]'].mean().reset_index()
+        full_weekday_avg = full_weekday_avg.sort_values('Energy Price [EUR/MWh]')
         st.write("**Average Price by Weekday**")
-        st.bar_chart(full_weekday_avg.rename(columns={price_col: 'Average Price'}).set_index('Weekday_Name'))
+        st.bar_chart(full_weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Weekday_Name'))
 
-        full_week_avg = df_clean.groupby('Week')[price_col].mean().reset_index()
-        full_week_avg = full_week_avg.sort_values(price_col)
+        full_week_avg = df_clean.groupby('Week')['Energy Price [EUR/MWh]'].mean().reset_index()
+        full_week_avg = full_week_avg.sort_values('Energy Price [EUR/MWh]')
         st.write("**Average Price by Week Number**")
-        st.bar_chart(full_week_avg.rename(columns={price_col: 'Average Price'}).set_index('Week'))
+        st.bar_chart(full_week_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Week'))
 
-        full_season_avg = df_clean.groupby('Season')[price_col].mean().reset_index()
-        full_season_avg = full_season_avg.sort_values(price_col)
+        full_season_avg = df_clean.groupby('Season')['Energy Price [EUR/MWh]'].mean().reset_index()
+        full_season_avg = full_season_avg.sort_values('Energy Price [EUR/MWh]')
         st.write("**Average Price by Season**")
-        st.bar_chart(full_season_avg.rename(columns={price_col: 'Average Price'}).set_index('Season'))
+        st.bar_chart(full_season_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Season'))
