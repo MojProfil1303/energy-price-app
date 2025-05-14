@@ -94,14 +94,14 @@ if uploaded_file is not None:
         st.metric(f"Price with {markup_percent}% Markup", f"{final_price:.2f} EUR/MWh")
 
         # Hourly average chart
-        st.subheader("Bar Chart per Hour (Highlighting Selected Hours)")
-        hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-        st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+        #st.subheader("Bar Chart per Hour (Highlighting Selected Hours)")
+        #hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+        #st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        if selected_hours:
-            st.markdown("### Highlighted Hour(s)")
-            highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)]
-            st.bar_chart(highlighted.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+        #if selected_hours:
+            #st.markdown("### Highlighted Hour(s)")
+            #highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)]
+            #st.bar_chart(highlighted.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
         # Show Grouped Hour × Month chart
         if selected_hours and months and not weekdays:
