@@ -112,6 +112,10 @@ if uploaded_file is not None:
         st.metric(label=f"Price with {markup_percent}% Markup", value=f"{final_price:.2f} EUR/MWh")
 
     # Bar Chart: Average price per hour based on filters (always show 0–23)
+    st.write("Hourly Average Filtered:")
+    st.dataframe(hourly_avg_filtered)
+    st.write("Drop NaNs and set index:")
+    st.dataframe(hourly_avg_filtered.dropna().set_index('Hour'))
     st.subheader("Average Energy Price by Hour (Filtered Data)")
     hourly_avg_filtered = (filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean()
                            .reindex(range(24), fill_value=float('nan')).reset_index())
