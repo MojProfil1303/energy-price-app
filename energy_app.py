@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import plotly.express as px  # Added for grouped bar chart
 
 st.set_page_config(page_title="Energy Price Explorer", layout="wide")
 
@@ -100,26 +101,37 @@ if uploaded_file is not None:
         # Bar Chart for all 24 hours, with highlighted selected hours
         st.subheader("Bar Chart per Hour (with Selected Hours Highlighted)")
 
-        # Group the data by hour and calculate the average price
         hourly_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-
-        # Highlight the selected hours by marking them differently
         highlighted = hourly_avg[hourly_avg['Hour'].isin(selected_hours)] if selected_hours else pd.DataFrame()
 
-        # Plot all 24 hours
         st.bar_chart(hourly_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        # If hours are selected, add a highlighted layer for them
         if not highlighted.empty:
             st.markdown("### Highlighted Hours")
             st.bar_chart(highlighted.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
 
-        # Bar Chart for selected Weekdays (e.g., Monday, Tuesday)
-        if weekdays:
-            st.subheader("Bar Chart per Selected Weekday(s)")
-            filtered_weekdays = filtered[filtered['Weekday'].isin(weekdays)]
-            weekday_avg = filtered_weekdays.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+        # ✅ NEW: Grouped Bar Chart by Hour and Weekday
+        if selected_hours and weekdays:
+            st.subheader("Grouped Bar Chart: Hourly Averages by Selected Weekdays")
+
+            filtered_subset = filtered[filtered['Hour'].isin(selected_hours) & filtered['Weekday'].isin(weekdays)]
+
+            grouped_avg = (
+                filtered_subset.groupby(['Weekday_Name', 'Hour'])['Energy Price [EUR/MWh]']
+                .mean()
+                .reset_index()
+                .rename(columns={'Energy Price [EUR/MWh]': 'Average Price'})
+            )
+
+            fig = px.bar(
+                grouped_avg,
+                x='Hour',
+                y='Average Price',
+                color='Weekday_Name',
+                barmode='group',
+                title='Average Energy Price by Hour and Weekday'
+            )
+            st.plotly_chart(fig, use_container_width=True)
 
         # Bar Chart for selected Weeks
         if weeks:
