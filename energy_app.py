@@ -76,13 +76,13 @@ if uploaded_file is not None:
         filtered = filtered[filtered['Weekday'].isin(weekdays)]
 
     # Results
-    st.subheader("Average Energy Price for")
+    st.subheader("Average Energy Price for the Data")
 
     if filtered.empty:
         st.warning("No data for selected filters.")
     else:
         avg_price = filtered['Energy Price [EUR/MWh]'].mean()
-        st.metric("Average Price [€/MWh]", f"{avg_price:.2f}")
+        st.metric("Average Price [€/MWh]", f"{avg_price:.2f} €/MWh")
 
         final_price = avg_price * (1 + markup_percent / 100)
         st.metric(f"Price with {markup_percent}% Markup", f"{final_price:.2f} €/MWh")
