@@ -102,7 +102,7 @@ if uploaded_file is not None:
         st.metric("Total cost of energy", f"{final_price:.2f} €/MWh")
 
         if selected_hours and months and weekdays:
-            st.subheader("3D Bar Chart: Hour × Month × Weekday")
+            st.subheader("Bar Chart: Hour × Month × Weekday")
             three_dim_avg = filtered.groupby(['Month_Name', 'Weekday_Name', 'Hour'])['Energy Price [EUR/MWh]'].mean().reset_index()
             fig_3d = px.bar(
                 three_dim_avg,
@@ -111,7 +111,7 @@ if uploaded_file is not None:
                 color='Hour',
                 facet_col='Weekday_Name',
                 category_orders={"Weekday_Name": list(weekday_names.values())},
-                title="3D Grouped Price by Month, Weekday, and Hour"
+                title="Grouped Price by Month, Weekday, and Hour"
             )
             st.plotly_chart(fig_3d, use_container_width=True)
 
