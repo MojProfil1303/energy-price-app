@@ -85,7 +85,7 @@ if uploaded_file is not None:
         st.metric("Average Price [€/MWh]", f"{avg_price:.2f} €/MWh")
 
         final_price = avg_price * (1 + markup_percent / 100)
-        st.metric("Total cost of energy, f"{final_price:.2f} €/MWh")
+        st.metric("Total cost of energy", f"{final_price:.2f} €/MWh")
 
         # Chart logic
         if selected_hours and months and weekdays:
