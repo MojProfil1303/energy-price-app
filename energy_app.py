@@ -177,7 +177,7 @@ if uploaded_file is not None:
     if not selected_hours and not months and not weekdays:
         st.subheader("Full Dataset Charts")
 
-        st.write("**Average Price by Hour (with Recommendation Tags)**")
+        st.write("nesto")
 
         hour_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
         overall_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
