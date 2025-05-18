@@ -164,6 +164,9 @@ if uploaded_file is not None:
                     '✅ Most Recommended': 'green',
                     '⚠️ Moderate': 'orange',
                     '❌ Not Recommended': 'red'
+                },
+                category_orders={
+                    'Recommendation': ['✅ Most Recommended', '⚠️ Moderate', '❌ Not Recommended']
                 }
             )
 
