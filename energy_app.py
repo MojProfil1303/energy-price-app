@@ -61,8 +61,23 @@ if uploaded_file is not None:
     # Sidebar filters
     st.sidebar.header("Filter Options")
     selected_hours = st.sidebar.multiselect("Select Hour(s)", list(range(24)))
-    months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)))
-    weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)))
+    month_names = {
+        1: 'January', 2: 'February', 3: 'March', 4: 'April',
+        5: 'May', 6: 'June', 7: 'July', 8: 'August',
+        9: 'September', 10: 'October', 11: 'November', 12: 'December'
+    }
+    month_name_to_num = {v: k for k, v in month_names.items()}
+    selected_month_names = st.sidebar.multiselect("Select Month(s)", list(month_names.values()))
+    months = [month_name_to_num[m] for m in selected_month_names] if selected_month_names else []
+
+    # Weekday name mapping
+    weekday_names = {
+        0: 'Monday', 1: 'Tuesday', 2: 'Wednesday', 3: 'Thursday',
+        4: 'Friday', 5: 'Saturday', 6: 'Sunday'
+    }
+    weekday_name_to_num = {v: k for k, v in weekday_names.items()}
+    selected_weekday_names = st.sidebar.multiselect("Select Weekday(s)", list(weekday_names.values()))
+    weekdays = [weekday_name_to_num[d] for d in selected_weekday_names] if selected_weekday_names else []
 
     markup_percent = st.sidebar.number_input("Cost of Energy", min_value=0.0, step=0.5)
 
