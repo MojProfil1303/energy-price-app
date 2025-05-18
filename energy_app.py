@@ -64,7 +64,7 @@ if uploaded_file is not None:
     months = st.sidebar.multiselect("Select Month(s)", list(range(1, 13)))
     weekdays = st.sidebar.multiselect("Select Weekday(s) (0=Mon)", list(range(0, 7)))
 
-    markup_percent = st.sidebar.selectbox("Select Markup Percentage", [5, 10, 15, 20], index=3)
+    markup_percent = st.sidebar.selectbox("Cost of Energy", [5, 10, 15, 20], index=3)
 
     # Filtering
     filtered = df_clean.copy()
@@ -85,7 +85,7 @@ if uploaded_file is not None:
         st.metric("Average Price [€/MWh]", f"{avg_price:.2f} €/MWh")
 
         final_price = avg_price * (1 + markup_percent / 100)
-        st.metric(f"Price with {markup_percent}% Markup", f"{final_price:.2f} €/MWh")
+        st.metric(f"Total cost of energy, f"{final_price:.2f} €/MWh")
 
         # Chart logic
         if selected_hours and months and weekdays:
