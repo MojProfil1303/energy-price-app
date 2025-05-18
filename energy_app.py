@@ -213,9 +213,10 @@ if uploaded_file is not None:
         not_recommended_hours = hour_avg[hour_avg['Recommendation'] == '❌ Not Recommended']['Hour'].tolist()
         st.markdown("**Hourly Recommendation Summary Based on the Full Dataset:**")
         st.markdown(f"**Most Recommended (Lowest Avg Price):** {', '.join(str(h) for h in recommended_hours)}")
-        st.markdown(f"⚠**Moderate:** {', '.join(str(h) for h in moderate_hours)}")
+        st.markdown(f"**Moderate:** {', '.join(str(h) for h in moderate_hours)}")
         st.markdown(f"**Not Recommended (Highest Avg Price):** {', '.join(str(h) for h in not_recommended_hours)}")
 
+        st.write("\n")
 
         st.write("**Average Price by Month**")
         month_avg = df_clean.groupby('Month')['Energy Price [EUR/MWh]'].mean().reset_index()
