@@ -136,9 +136,38 @@ if uploaded_file is not None:
             st.plotly_chart(fig_weekday, use_container_width=True)
 
         elif selected_hours and not months and not weekdays:
-            st.subheader("Average Price by Hour")
-            hour_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            st.bar_chart(hour_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+            #st.subheader("Average Price by Hour")
+            #hour_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            #st.bar_chart(hour_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Hour'))
+            st.write("**Average Price by Hour (with Recommendation Tags)**")
+            # Step 1: Group hourly averages
+            hour_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            # Step 2: Calculate overall average
+            overall_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
+            # Step 3: Create recommendation category
+            def categorize(price):
+                if price < overall_avg:
+                    return '✅ Most Recommended'
+                elif price <= overall_avg + 10:
+                    return '⚠️ Moderate'
+                else:
+                    return '❌ Not Recommended'
+            hour_avg['Recommendation'] = hour_avg['Energy Price [EUR/MWh]'].apply(categorize)
+            # Step 4: Plot with Plotly
+            fig = px.bar(
+                hour_avg, 
+                x='Hour',
+                y='Energy Price [EUR/MWh]',
+                color='Recommendation',
+                title=f"Average Energy Price by Hour (Overall Avg: {overall_avg:.2f} EUR/MWh)",
+                color_discrete_map={
+                    '✅ Most Recommended': 'green',
+                    '⚠️ Moderate': 'orange',
+                    '❌ Not Recommended': 'red'
+                }
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
 
         elif months and not selected_hours and not weekdays:
             st.subheader("Average Price by Month")
