@@ -150,7 +150,7 @@ if uploaded_file is not None:
                 x='Hour',
                 y='Energy Price [EUR/MWh]',
                 color='Recommendation',
-                title=f"Average Energy Price by Hour (Overall Avg: {overall_avg:.2f} EUR/MWh)",
+                title=f"Average Energy Price by Hour (Overall Avg: {selected_avg:.2f} EUR/MWh)",
                 color_discrete_map={
                     '✅ Most Recommended': 'green',
                     '⚠️ Moderate': 'orange',
