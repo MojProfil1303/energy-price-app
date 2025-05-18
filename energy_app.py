@@ -81,7 +81,7 @@ if uploaded_file is not None:
     if filtered.empty:
         st.warning("No data for selected filters.")
     else:
-        avg_price = filtered['Energy Price [€/MWh]'].mean()
+        avg_price = filtered['Energy Price [EUR/MWh]'].mean()
         st.metric("Average Price [€/MWh]", f"{avg_price:.2f}")
 
         final_price = avg_price * (1 + markup_percent / 100)
@@ -90,11 +90,11 @@ if uploaded_file is not None:
         # Chart logic
         if selected_hours and months and weekdays:
             st.subheader("3D Bar Chart: Hour × Month × Weekday")
-            three_dim_avg = filtered.groupby(['Month', 'Weekday_Name', 'Hour'])['Energy Price [€/MWh]'].mean().reset_index()
+            three_dim_avg = filtered.groupby(['Month', 'Weekday_Name', 'Hour'])['Energy Price [EUR/MWh]'].mean().reset_index()
             fig_3d = px.bar(
                 three_dim_avg,
                 x='Month',
-                y='Energy Price [€/MWh]',
+                y='Energy Price [EUR/MWh]',
                 color='Hour',
                 facet_col='Weekday_Name',
                 category_orders={"Weekday_Name": ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']},
@@ -104,11 +104,11 @@ if uploaded_file is not None:
 
         elif selected_hours and months and not weekdays:
             st.subheader("Grouped Bar Chart: Hour × Month")
-            month_avg = filtered.groupby(['Month', 'Hour'])['Energy Price [€/MWh]'].mean().reset_index()
+            month_avg = filtered.groupby(['Month', 'Hour'])['Energy Price [EUR/MWh]'].mean().reset_index()
             fig_month = px.bar(
                 month_avg,
                 x='Month',
-                y='Energy Price [€/MWh]',
+                y='Energy Price [EUR/MWh]',
                 color='Hour',
                 barmode='group',
                 title="Grouped Average Price by Month and Hour"
@@ -117,11 +117,11 @@ if uploaded_file is not None:
 
         elif selected_hours and weekdays and not months:
             st.subheader("Grouped Bar Chart: Hour × Weekday")
-            weekday_avg = filtered.groupby(['Weekday_Name', 'Hour'])['Energy Price [€/MWh]'].mean().reset_index()
+            weekday_avg = filtered.groupby(['Weekday_Name', 'Hour'])['Energy Price [EUR/MWh]'].mean().reset_index()
             fig_weekday = px.bar(
                 weekday_avg,
                 x='Weekday_Name',
-                y='Energy Price [€/MWh]',
+                y='Energy Price [EUR/MWh]',
                 color='Hour',
                 barmode='group',
                 category_orders={"Weekday_Name": ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']},
@@ -131,8 +131,8 @@ if uploaded_file is not None:
 
         elif selected_hours and not months and not weekdays:
             st.write("**Average Price by Hour (with Recommendation Tags)**")
-            hour_avg = df_clean.groupby('Hour')['Energy Price [€/MWh]'].mean().reset_index()
-            overall_avg = hour_avg['Energy Price [€/MWh]'].mean()
+            hour_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            overall_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
 
             def categorize(price):
                 if price < overall_avg:
@@ -142,14 +142,14 @@ if uploaded_file is not None:
                 else:
                     return '❌ Not Recommended'
 
-            hour_avg['Recommendation'] = hour_avg['Energy Price [€/MWh]'].apply(categorize)
+            hour_avg['Recommendation'] = hour_avg['Energy Price [EUR/MWh]'].apply(categorize)
 
             fig = px.bar(
                 hour_avg, 
                 x='Hour',
-                y='Energy Price [€/MWh]',
+                y='Energy Price [EUR/MWh]',
                 color='Recommendation',
-                title=f"Average Energy Price by Hour (Overall Avg: {overall_avg:.2f} €/MWh)",
+                title=f"Average Energy Price by Hour (Overall Avg: {overall_avg:.2f} EUR/MWh)",
                 color_discrete_map={
                     '✅ Most Recommended': 'green',
                     '⚠️ Moderate': 'orange',
@@ -164,20 +164,20 @@ if uploaded_file is not None:
 
         elif months and not selected_hours and not weekdays:
             st.subheader("Average Price by Month")
-            month_avg = filtered.groupby('Month')['Energy Price [€/MWh]'].mean().reset_index()
-            st.bar_chart(month_avg.rename(columns={'Energy Price [€/MWh]': 'Average Price'}).set_index('Month'))
+            month_avg = filtered.groupby('Month')['Energy Price [EUR/MWh]'].mean().reset_index()
+            st.bar_chart(month_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Month'))
 
         elif weekdays and not selected_hours and not months:
             st.subheader("Average Price by Weekday")
-            weekday_avg = filtered.groupby('Weekday_Name')['Energy Price [€/MWh]'].mean().reset_index()
-            weekday_avg = weekday_avg.sort_values('Energy Price [€/MWh]')
-            st.bar_chart(weekday_avg.rename(columns={'Energy Price [€/MWh]': 'Average Price'}).set_index('Weekday_Name'))
+            weekday_avg = filtered.groupby('Weekday_Name')['Energy Price [EUR/MWh]'].mean().reset_index()
+            weekday_avg = weekday_avg.sort_values('Energy Price [EUR/MWh]')
+            st.bar_chart(weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Weekday_Name'))
 
     # Full dataset fallback charts
     if not selected_hours and not months and not weekdays:
         st.subheader("Full Dataset Charts")
-        hour_avg = df_clean.groupby('Hour')['Energy Price [€/MWh]'].mean().reset_index()
-        overall_avg = hour_avg['Energy Price [€/MWh]'].mean()
+        hour_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+        overall_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
 
         def categorize(price):
             if price < overall_avg:
@@ -187,12 +187,12 @@ if uploaded_file is not None:
             else:
                 return '❌ Not Recommended'
 
-        hour_avg['Recommendation'] = hour_avg['Energy Price [€/MWh]'].apply(categorize)
+        hour_avg['Recommendation'] = hour_avg['Energy Price [EUR/MWh]'].apply(categorize)
 
         fig = px.bar(
             hour_avg, 
             x='Hour',
-            y='Energy Price [€/MWh]',
+            y='Energy Price [EUR/MWh]',
             color='Recommendation',
             title=f"Average Energy Price by Hour",
             color_discrete_map={
@@ -218,10 +218,10 @@ if uploaded_file is not None:
 
 
         st.write("**Average Price by Month**")
-        month_avg = df_clean.groupby('Month')['Energy Price [€/MWh]'].mean().reset_index()
-        st.bar_chart(month_avg.rename(columns={'Energy Price [€/MWh]': 'Average Price'}).set_index('Month'))
+        month_avg = df_clean.groupby('Month')['Energy Price [EUR/MWh]'].mean().reset_index()
+        st.bar_chart(month_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Month'))
 
         st.write("**Average Price by Weekday**")
-        weekday_avg = df_clean.groupby('Weekday_Name')['Energy Price [€/MWh]'].mean().reset_index()
-        weekday_avg = weekday_avg.sort_values('Energy Price [€/MWh]')
-        st.bar_chart(weekday_avg.rename(columns={'Energy Price [€/MWh]': 'Average Price'}).set_index('Weekday_Name'))
+        weekday_avg = df_clean.groupby('Weekday_Name')['Energy Price [EUR/MWh]'].mean().reset_index()
+        weekday_avg = weekday_avg.sort_values('Energy Price [EUR/MWh]')
+        st.bar_chart(weekday_avg.rename(columns={'Energy Price [EUR/MWh]': 'Average Price'}).set_index('Weekday_Name'))
