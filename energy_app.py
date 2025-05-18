@@ -130,14 +130,15 @@ if uploaded_file is not None:
             st.plotly_chart(fig_weekday, use_container_width=True)
 
         elif selected_hours and not months and not weekdays:
-            st.write("**Average Price by Hour (with Recommendation Tags)**")
-            hour_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
-            overall_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
-
+            # Step 1: Group filtered selected-hour data
+            hour_avg = filtered.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
+            # Step 2: Calculate average only for selected hours
+            selected_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
+    
             def categorize(price):
-                if price < overall_avg:
+                if price < selected_avg:
                     return '✅ Most Recommended'
-                elif price <= overall_avg + 10:
+                elif price <= selected_avg + 10:
                     return '⚠️ Moderate'
                 else:
                     return '❌ Not Recommended'
@@ -161,6 +162,13 @@ if uploaded_file is not None:
             )
 
             st.plotly_chart(fig, use_container_width=True)
+            recommended = hour_avg[hour_avg['Recommendation'] == '✅ Most Recommended']['Hour'].tolist()
+            moderate = hour_avg[hour_avg['Recommendation'] == '⚠️ Moderate']['Hour'].tolist()
+            not_recommended = hour_avg[hour_avg['Recommendation'] == '❌ Not Recommended']['Hour'].tolist()
+
+            st.markdown(f"**Most Recommended Hours:** {', '.join(map(str, recommended)) if recommended else 'None'}")
+            st.markdown(f"**Moderate Hours:** {', '.join(map(str, moderate)) if moderate else 'None'}")
+            st.markdown(f"**Not Recommended Hours:** {', '.join(map(str, not_recommended)) if not_recommended else 'None'}")
 
         elif months and not selected_hours and not weekdays:
             st.subheader("Average Price by Month")
@@ -175,7 +183,6 @@ if uploaded_file is not None:
 
     # Full dataset fallback charts
     if not selected_hours and not months and not weekdays:
-        st.subheader("Full Dataset Charts")
         hour_avg = df_clean.groupby('Hour')['Energy Price [EUR/MWh]'].mean().reset_index()
         overall_avg = hour_avg['Energy Price [EUR/MWh]'].mean()
 
