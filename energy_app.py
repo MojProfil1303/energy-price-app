@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Energy Price Explorer", layout="wide")
 
@@ -69,7 +68,7 @@ if uploaded_file is not None:
 
     st.title("Energy Price Explorer")
 
-    # Energy filters
+    # Sidebar filters
     st.sidebar.header("Filter Options")
     selected_hours = st.sidebar.multiselect("Select Hour(s)", list(range(24)))
     month_name_to_num = {v: k for k, v in month_names.items()}
@@ -81,66 +80,7 @@ if uploaded_file is not None:
     weekdays = [weekday_name_to_num[d] for d in selected_weekday_names] if selected_weekday_names else []
 
     markup_percent = st.sidebar.number_input("Cost of Energy", min_value=0.0, step=0.5)
-    
-    # Truck filters
-    st.sidebar.header("Truck Fleet Inputs")
-    truck_models = [
-        "VOLVO FH Aero Electric 4x2 trailer",
-        "MERCEDES-BENZ eACTROS 600",
-        "MAN TGX 20.544 4x2 LL SA EB",
-        "RENAULT E TECH- T 4x2",
-        "SCANIA R400E" 
-    ]
 
-    selected_truck = st.sidebar.selectbox("Select eTruck Model", truck_models)
-    fleet_size = st.sidebar.number_input("Number of Vehicles in Fleet", min_value=1, step=1)
-    years_in_service = st.sidebar.number_input("Years in Service", min_value=0, step=1)
-    speed_kmh = st.sidebar.number_input("Average Speed (km/h)", min_value=1.0, value=60.0)
-    departure_time_str = st.sidebar.time_input("First Departure Time")  # returns a datetime.time object
-    route_length_km = st.sidebar.number_input("Length of Route to Next Stop (km)", min_value=1.0)
-    num_stops = st.sidebar.number_input("Number of Stops", min_value=0, step=1)
-
-    st.subheader("Truck Fleet Route Timing Calculator")
-
-    # Calculate raw drive time in hours
-    drive_time_hours = route_length_km / speed_kmh
-
-    # Convert to fraction of a day
-    drive_fraction = drive_time_hours / 24
-
-    # Calculate stop time using tiers (as an example logic)
-    def get_stop_time_minutes(stops):
-        if stops == 0:
-            return 0
-        elif stops <= 2:
-            return 15 * stops
-        elif stops <= 5:
-            return 10 * stops
-        else:
-            return 5 * stops
-
-    stop_minutes = get_stop_time_minutes(num_stops)
-    stop_fraction = stop_minutes / (24 * 60)  # convert minutes to fraction of a day
-
-    # Total duration in days
-    total_duration = drive_fraction + stop_fraction
-
-    # Round up to nearest 0.5 hour (i.e., 30 mins)
-    def ceiling_to_half_hour(hours):
-        return round((hours * 2 + 0.49)) / 2
-
-    total_hours = total_duration * 24
-    rounded_hours = ceiling_to_half_hour(total_hours)
-
-    # Estimate end time
-    start_datetime = datetime.combine(datetime.today(), departure_time_str)
-    end_time = start_datetime + timedelta(hours=rounded_hours)
-
-    st.markdown(f"**Drive Time:** {drive_time_hours:.2f} hours")
-    st.markdown(f"**Stop Time:** {stop_minutes} minutes")
-    st.markdown(f"**Rounded Total Drive Time:** {rounded_hours:.2f} hours")
-    st.markdown(f"**Estimated End Time:** {end_time.strftime('%H:%M')}")
-    
     # Filtering
     filtered = df_clean.copy()
     if selected_hours:
